@@ -69,11 +69,26 @@
     background: var(--gb-pale);
     cursor: pointer;
     transition: background 0.2s;
+    position: relative;
+    min-height: 140px;
   }
   .drop-zone:hover, .drop-zone.dragover {
     background: var(--gb-light);
   }
   .drop-zone input[type="file"] { display: none; }
+  .drop-zone .loader-wrap {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(139, 172, 15, 0.9);
+    margin: 0;
+    padding: 0;
+  }
 
   .row {
     display: flex;
@@ -495,15 +510,17 @@
   <div class="panel">
     <div class="panel-title">1. Upload Images</div>
     <div class="drop-zone" id="dropZone">
-      <div>DRAG & DROP IMAGES HERE</div>
-      <div style="margin-top:8px; font-size:9px;">OR CLICK TO SELECT</div>
+      <div id="dropZoneText">
+        <div>DRAG & DROP IMAGES HERE</div>
+        <div style="margin-top:8px; font-size:9px;">OR CLICK TO SELECT</div>
+      </div>
       <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/jpg">
+      <div class="loader-wrap hidden" id="loaderWrap">
+        <img class="loader-gif" id="loaderGif" src="loader.gif" alt="Loading">
+        <div class="loader-text" id="loaderText">Loading...</div>
+      </div>
     </div>
     <div id="uploadStatus" class="status"></div>
-    <div class="loader-wrap hidden" id="loaderWrap">
-      <img class="loader-gif" id="loaderGif" src="loader.gif" alt="Loading">
-      <div class="loader-text" id="loaderText">Loading...</div>
-    </div>
     <button class="delete-btn hidden" id="deleteBtn">
       <div class="delete-progress" id="deleteProgress"></div>
       HOLD TO DELETE
@@ -612,6 +629,7 @@
 
   // DOM refs
   const dropZone = document.getElementById('dropZone');
+  const dropZoneText = document.getElementById('dropZoneText');
   const fileInput = document.getElementById('fileInput');
   const uploadStatus = document.getElementById('uploadStatus');
   const loaderWrap = document.getElementById('loaderWrap');
@@ -778,6 +796,7 @@
 
     uploadStatus.textContent = `Loading ${addedCount} image(s)...`;
     loaderText.textContent = pickLoadingPhrase();
+    dropZoneText.classList.add('hidden');
     loaderWrap.classList.remove('hidden');
 
     // Only preload newly added files (those without cachedImg)
@@ -802,6 +821,7 @@
 
     Promise.all(preloadPromises).then(() => {
       loaderWrap.classList.add('hidden');
+      dropZoneText.classList.remove('hidden');
       if (isAppend) {
         uploadStatus.textContent = `Added ${addedCount}. Total: ${filesData.length}. Range: ${filesData[0].number} - ${filesData[filesData.length-1].number}`;
       } else {
@@ -1177,6 +1197,8 @@
     previewCanvas.height = 0;
     previewStatus.textContent = 'Preview on first image';
     fileInput.value = '';
+    dropZoneText.classList.remove('hidden');
+    loaderWrap.classList.add('hidden');
   }
 
   function startDeleteHold() {
