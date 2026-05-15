@@ -142,6 +142,41 @@
     cursor: not-allowed;
   }
 
+  .delete-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    background: #8b0000;
+    color: #fff;
+    border: 3px solid #5c0000;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-top: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .delete-btn:hover {
+    background: #a50000;
+  }
+  .delete-btn.active {
+    background: #5c0000;
+  }
+  .delete-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.25);
+    width: 0%;
+    transition: width 0.05s linear;
+    pointer-events: none;
+  }
+
   .center-actions {
     text-align: center;
   }
@@ -469,6 +504,10 @@
       <img class="loader-gif" id="loaderGif" src="loader.gif" alt="Loading">
       <div class="loader-text" id="loaderText">Loading...</div>
     </div>
+    <button class="delete-btn hidden" id="deleteBtn">
+      <div class="delete-progress" id="deleteProgress"></div>
+      HOLD TO DELETE
+    </button>
   </div>
 
   <!-- Settings -->
@@ -578,6 +617,8 @@
   const loaderWrap = document.getElementById('loaderWrap');
   const loaderGif = document.getElementById('loaderGif');
   const loaderText = document.getElementById('loaderText');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const deleteProgress = document.getElementById('deleteProgress');
   const settingsPanel = document.getElementById('settingsPanel');
   const trimPanel = document.getElementById('trimPanel');
   const galleryPanel = document.getElementById('galleryPanel');
@@ -724,35 +765,50 @@
       return;
     }
 
-    parsed.sort((a, b) => a.number - b.number);
-    filesData = parsed;
+    const isAppend = filesData.length > 0;
+    const addedCount = parsed.length;
 
-    uploadStatus.textContent = `Loading ${filesData.length} image(s)...`;
+    // Merge: replace duplicates by filename, then add new ones
+    const existingMap = new Map(filesData.map(item => [item.file.name, item]));
+    parsed.forEach(item => {
+      existingMap.set(item.file.name, item);
+    });
+    filesData = Array.from(existingMap.values());
+    filesData.sort((a, b) => a.number - b.number);
+
+    uploadStatus.textContent = `Loading ${addedCount} image(s)...`;
     loaderText.textContent = pickLoadingPhrase();
     loaderWrap.classList.remove('hidden');
 
-    // Preload all images into memory for instant preview and gallery
-    const preloadPromises = filesData.map(item => new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const img = new Image();
-        img.onload = () => {
-          item.cachedImg = img;
-          item.naturalWidth = img.naturalWidth;
-          item.naturalHeight = img.naturalHeight;
-          resolve();
+    // Only preload newly added files (those without cachedImg)
+    const preloadPromises = filesData
+      .filter(item => !item.cachedImg)
+      .map(item => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            item.cachedImg = img;
+            item.naturalWidth = img.naturalWidth;
+            item.naturalHeight = img.naturalHeight;
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = e.target.result;
         };
-        img.onerror = () => resolve();
-        img.src = e.target.result;
-      };
-      reader.onerror = () => resolve();
-      reader.readAsDataURL(item.file);
-    }));
+        reader.onerror = () => resolve();
+        reader.readAsDataURL(item.file);
+      }));
 
     Promise.all(preloadPromises).then(() => {
       loaderWrap.classList.add('hidden');
-      uploadStatus.textContent = `${filesData.length} image(s) loaded. Range: ${filesData[0].number} - ${filesData[filesData.length-1].number}`;
+      if (isAppend) {
+        uploadStatus.textContent = `Added ${addedCount}. Total: ${filesData.length}. Range: ${filesData[0].number} - ${filesData[filesData.length-1].number}`;
+      } else {
+        uploadStatus.textContent = `${filesData.length} image(s) loaded. Range: ${filesData[0].number} - ${filesData[filesData.length-1].number}`;
+      }
 
+      deleteBtn.classList.remove('hidden');
       settingsPanel.classList.remove('hidden');
       trimPanel.classList.remove('hidden');
       galleryPanel.classList.remove('hidden');
@@ -1098,6 +1154,67 @@
     const pad = n => String(n).padStart(2, '0');
     return `GB_Camera_${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}.jpg`;
   }
+
+  // Hold-to-delete logic
+  let deleteTimer = null;
+  let deleteStartTime = null;
+  const DELETE_HOLD_MS = 2000;
+
+  function clearAllImages() {
+    filesData = [];
+    firstImage = null;
+    firstImageNaturalWidth = 0;
+    firstImageNaturalHeight = 0;
+    imageList.innerHTML = '';
+    galleryTeaser.innerHTML = '';
+    uploadStatus.textContent = '';
+    deleteBtn.classList.add('hidden');
+    settingsPanel.classList.add('hidden');
+    trimPanel.classList.add('hidden');
+    galleryPanel.classList.add('hidden');
+    actionsPanel.classList.add('hidden');
+    previewCanvas.width = 0;
+    previewCanvas.height = 0;
+    previewStatus.textContent = 'Preview on first image';
+  }
+
+  function startDeleteHold() {
+    if (deleteTimer) return;
+    deleteBtn.classList.add('active');
+    deleteStartTime = Date.now();
+    deleteTimer = setInterval(() => {
+      const elapsed = Date.now() - deleteStartTime;
+      const pct = Math.min(100, (elapsed / DELETE_HOLD_MS) * 100);
+      deleteProgress.style.width = pct + '%';
+      if (elapsed >= DELETE_HOLD_MS) {
+        stopDeleteHold();
+        clearAllImages();
+      }
+    }, 50);
+  }
+
+  function stopDeleteHold() {
+    if (deleteTimer) {
+      clearInterval(deleteTimer);
+      deleteTimer = null;
+    }
+    deleteBtn.classList.remove('active');
+    deleteProgress.style.width = '0%';
+  }
+
+  deleteBtn.addEventListener('mousedown', startDeleteHold);
+  deleteBtn.addEventListener('mouseup', stopDeleteHold);
+  deleteBtn.addEventListener('mouseleave', stopDeleteHold);
+  deleteBtn.addEventListener('touchstart', e => { e.preventDefault(); startDeleteHold(); });
+  deleteBtn.addEventListener('touchend', stopDeleteHold);
+
+  // Prevent accidental page reload when images are loaded
+  window.addEventListener('beforeunload', e => {
+    if (filesData.length > 0) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
 
   function processImage(file, date, trim) {
     return new Promise((resolve, reject) => {
