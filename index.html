@@ -6,8 +6,9 @@
 <title>GB Cam Formatter</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<style>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
   :root {
     --gb-bg: #8bac0f;
     --gb-dark: #0f380f;
@@ -215,6 +216,29 @@
   #previewStatus {
     text-align: right;
     align-self: flex-end;
+  }
+
+  .loader-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 15px;
+  }
+  .loader-gif {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+  }
+  .loader-text {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--gb-dark);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
   }
 
   .progress-wrap {
@@ -441,6 +465,10 @@
       <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/jpg">
     </div>
     <div id="uploadStatus" class="status"></div>
+    <div class="loader-wrap hidden" id="loaderWrap">
+      <img class="loader-gif" id="loaderGif" src="loader.gif" alt="Loading">
+      <div class="loader-text" id="loaderText">Loading...</div>
+    </div>
   </div>
 
   <!-- Settings -->
@@ -547,6 +575,9 @@
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
   const uploadStatus = document.getElementById('uploadStatus');
+  const loaderWrap = document.getElementById('loaderWrap');
+  const loaderGif = document.getElementById('loaderGif');
+  const loaderText = document.getElementById('loaderText');
   const settingsPanel = document.getElementById('settingsPanel');
   const trimPanel = document.getElementById('trimPanel');
   const galleryPanel = document.getElementById('galleryPanel');
@@ -581,6 +612,23 @@
   let firstImageNaturalWidth = 0;
   let firstImageNaturalHeight = 0;
   let lightboxIndex = 0;
+
+  const loadingPhrases = [
+    'Developing photos...',
+    'Reading cartridges...',
+    'Winding film...',
+    'Loading Game Pak...',
+    'Pixelating memories...',
+    'Connecting to Printer...',
+    'Inserting cartridge...',
+    'Waking up Pikachu...',
+    'Blowing dust off pins...',
+    'Tightening screws...',
+  ];
+
+  function pickLoadingPhrase() {
+    return loadingPhrases[Math.floor(Math.random() * loadingPhrases.length)];
+  }
 
   // Load persisted settings
   function loadSettings() {
@@ -679,7 +727,9 @@
     parsed.sort((a, b) => a.number - b.number);
     filesData = parsed;
 
-    uploadStatus.textContent = `${filesData.length} image(s) loaded. Range: ${filesData[0].number} - ${filesData[filesData.length-1].number}`;
+    uploadStatus.textContent = `Loading ${filesData.length} image(s)...`;
+    loaderText.textContent = pickLoadingPhrase();
+    loaderWrap.classList.remove('hidden');
 
     // Preload all images into memory for instant preview and gallery
     const preloadPromises = filesData.map(item => new Promise((resolve) => {
@@ -700,6 +750,9 @@
     }));
 
     Promise.all(preloadPromises).then(() => {
+      loaderWrap.classList.add('hidden');
+      uploadStatus.textContent = `${filesData.length} image(s) loaded. Range: ${filesData[0].number} - ${filesData[filesData.length-1].number}`;
+
       settingsPanel.classList.remove('hidden');
       trimPanel.classList.remove('hidden');
       galleryPanel.classList.remove('hidden');
