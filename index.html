@@ -71,6 +71,13 @@
     transition: background 0.2s;
     position: relative;
     min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .drop-zone-text {
+    width: 100%;
   }
   .drop-zone:hover, .drop-zone.dragover {
     background: var(--gb-light);
@@ -510,7 +517,7 @@
   <div class="panel">
     <div class="panel-title">1. Upload Images</div>
     <div class="drop-zone" id="dropZone">
-      <div id="dropZoneText">
+      <div class="drop-zone-text" id="dropZoneText">
         <div>DRAG & DROP IMAGES HERE</div>
         <div style="margin-top:8px; font-size:9px;">OR CLICK TO SELECT</div>
       </div>
