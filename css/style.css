@@ -451,6 +451,7 @@ footer a {
   align-items: center;
   gap: 6px;
   transition: color 0.2s;
+  line-height: 1;
 }
 footer a:hover {
   color: var(--gb-mid);
@@ -459,6 +460,8 @@ footer svg {
   width: 16px;
   height: 16px;
   fill: currentColor;
+  display: block;
+  flex-shrink: 0;
 }
 
 .drop-zone-subtext {
