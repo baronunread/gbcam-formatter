@@ -141,6 +141,10 @@
     cursor: not-allowed;
   }
 
+  .center-actions {
+    text-align: center;
+  }
+
   .preview-wrap {
     display: flex;
     gap: 15px;
@@ -148,26 +152,34 @@
     flex-wrap: wrap;
   }
 
+  .trim-controls {
+    flex: 0 0 auto;
+    min-width: 240px;
+    align-self: flex-start;
+  }
+
+  .preview-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 200px;
+    max-width: 320px;
+  }
+
   .preview-box {
     position: relative;
-    display: inline-block;
+    display: block;
     border: 2px solid var(--gb-dark);
     background: #000;
     max-width: 100%;
     overflow: hidden;
+    align-self: flex-end;
   }
   .preview-box img, .preview-box canvas {
     display: block;
     max-width: 100%;
     image-rendering: pixelated;
-  }
-
-  .crop-overlay {
-    position: absolute;
-    border: 2px dashed var(--gb-light);
-    background: rgba(139, 172, 15, 0.25);
-    pointer-events: none;
-    top: 0; left: 0; right: 0; bottom: 0;
   }
 
   .image-list {
@@ -188,16 +200,21 @@
   }
   .thumb img {
     width: 100%;
-    height: auto;
+    aspect-ratio: 128 / 112;
+    object-fit: contain;
     display: block;
     image-rendering: pixelated;
-    margin-bottom: 4px;
+    background: #000;
   }
 
   .status {
     margin-top: 8px;
     font-size: 10px;
     color: var(--gb-mid);
+  }
+  #previewStatus {
+    text-align: right;
+    align-self: flex-end;
   }
 
   .progress-wrap {
@@ -231,6 +248,136 @@
   }
   .panel-title-toggle.collapsed::after {
     content: "▶";
+  }
+
+  .teaser-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .teaser-thumbs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .teaser-thumbs .thumb {
+    flex: 0 0 100px;
+    cursor: pointer;
+    background: var(--gb-dark);
+    padding: 3px;
+    transition: transform 0.15s;
+  }
+  .teaser-thumbs .thumb:hover {
+    transform: scale(1.05);
+  }
+  .teaser-thumbs .thumb img {
+    width: 100%;
+    height: auto;
+    display: block;
+    image-rendering: pixelated;
+  }
+  .show-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--gb-dark);
+    color: var(--gb-light);
+    border: 2px solid var(--gb-dark);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .show-all-btn:hover {
+    background: var(--gb-mid);
+  }
+
+  .lightbox-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(15, 56, 15, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+  }
+  .lightbox-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .lightbox-content img {
+    max-width: 100%;
+    max-height: 80vh;
+    image-rendering: pixelated;
+    border: 3px solid var(--gb-light);
+    background: #000;
+  }
+  .lightbox-caption {
+    margin-top: 10px;
+    color: var(--gb-light);
+    font-size: 9px;
+    text-align: center;
+  }
+  .lightbox-close,
+  .lightbox-prev,
+  .lightbox-next {
+    position: absolute;
+    background: var(--gb-dark);
+    color: var(--gb-light);
+    border: 2px solid var(--gb-light);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px 10px;
+    line-height: 1;
+    z-index: 10001;
+  }
+  .lightbox-close:hover,
+  .lightbox-prev:hover,
+  .lightbox-next:hover {
+    background: var(--gb-mid);
+  }
+  .lightbox-close {
+    top: -40px;
+    right: 0;
+  }
+  .lightbox-prev {
+    left: -50px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .lightbox-next {
+    right: -50px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  @media (max-width: 600px) {
+    .lightbox-prev { left: 0; top: auto; bottom: -50px; transform: none; }
+    .lightbox-next { right: 0; top: auto; bottom: -50px; transform: none; }
+
+    #trimPanel .row {
+      flex-direction: column;
+    }
+    .trim-controls {
+      min-width: auto;
+      width: 100%;
+    }
+    .preview-col {
+      align-items: flex-start;
+      max-width: 100%;
+      width: 100%;
+    }
+
   }
 
   footer {
@@ -315,7 +462,7 @@
   <div class="panel hidden" id="trimPanel">
     <div class="panel-title">3. Border Trim (Game Boy Dots)</div>
     <div class="row">
-      <div class="col">
+      <div class="col trim-controls">
         <div class="field-row">
           <label>Top</label>
           <input type="number" id="trimTop" value="16" min="0">
@@ -336,13 +483,11 @@
           <label>Scale</label>
           <input type="number" id="scaleFactor" value="1" min="1" step="1">
           <span style="font-size:8px;">dots/px</span>
-          <button type="button" class="btn" id="autoScaleBtn" style="margin-top:0;">Detect</button>
         </div>
       </div>
-      <div class="col">
+      <div class="preview-col">
         <div class="preview-box" id="previewBox">
           <canvas id="previewCanvas"></canvas>
-          <div class="crop-overlay" id="cropOverlay"></div>
         </div>
         <div class="status" id="previewStatus">Preview on first image</div>
       </div>
@@ -352,13 +497,16 @@
   <!-- Gallery -->
   <div class="panel hidden" id="galleryPanel">
     <div class="panel-title panel-title-toggle collapsed" id="galleryToggle">4. Gallery Preview</div>
+    <div class="teaser-row hidden" id="galleryTeaser"></div>
     <div class="image-list hidden" id="imageList"></div>
   </div>
 
   <!-- Actions -->
   <div class="panel hidden" id="actionsPanel">
     <div class="panel-title">5. Process</div>
-    <button class="btn" id="processBtn">Generate & Download ZIP</button>
+    <div class="center-actions">
+      <button class="btn" id="processBtn">Generate & Download ZIP</button>
+    </div>
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-bar" id="progressBar"></div>
     </div>
@@ -380,6 +528,17 @@
   <div>Made with <span style="color:#e25555;">&#9829;</span> for all the Game Boy Camera enthusiasts</div>
 </footer>
 
+<!-- Lightbox -->
+<div class="lightbox-overlay hidden" id="lightboxOverlay">
+  <div class="lightbox-content">
+    <button class="lightbox-close" id="lightboxClose" title="Close">X</button>
+    <button class="lightbox-prev" id="lightboxPrev" title="Previous">&lt;</button>
+    <img id="lightboxImg" src="" alt="Preview">
+    <button class="lightbox-next" id="lightboxNext" title="Next">&gt;</button>
+    <div class="lightbox-caption" id="lightboxCaption"></div>
+  </div>
+</div>
+
 <script>
 (function() {
   'use strict';
@@ -399,12 +558,17 @@
   const trimLeft = document.getElementById('trimLeft');
   const trimRight = document.getElementById('trimRight');
   const scaleFactor = document.getElementById('scaleFactor');
-  const autoScaleBtn = document.getElementById('autoScaleBtn');
   const previewCanvas = document.getElementById('previewCanvas');
-  const cropOverlay = document.getElementById('cropOverlay');
   const previewStatus = document.getElementById('previewStatus');
   const imageList = document.getElementById('imageList');
+  const galleryTeaser = document.getElementById('galleryTeaser');
   const galleryToggle = document.getElementById('galleryToggle');
+  const lightboxOverlay = document.getElementById('lightboxOverlay');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxCaption = document.getElementById('lightboxCaption');
+  const lightboxClose = document.getElementById('lightboxClose');
+  const lightboxPrev = document.getElementById('lightboxPrev');
+  const lightboxNext = document.getElementById('lightboxNext');
   const processBtn = document.getElementById('processBtn');
   const progressWrap = document.getElementById('progressWrap');
   const progressBar = document.getElementById('progressBar');
@@ -416,6 +580,7 @@
   let firstImage = null;
   let firstImageNaturalWidth = 0;
   let firstImageNaturalHeight = 0;
+  let lightboxIndex = 0;
 
   // Load persisted settings
   function loadSettings() {
@@ -446,6 +611,7 @@
   // Gallery toggle
   function toggleGallery() {
     const isCollapsed = imageList.classList.toggle('hidden');
+    galleryTeaser.classList.toggle('hidden', !isCollapsed);
     galleryToggle.classList.toggle('collapsed', isCollapsed);
     localStorage.setItem('gbcam_gallery_collapsed', isCollapsed ? '1' : '0');
   }
@@ -455,9 +621,14 @@
   try {
     if (localStorage.getItem('gbcam_gallery_collapsed') !== '0') {
       imageList.classList.add('hidden');
+      galleryTeaser.classList.remove('hidden');
       galleryToggle.classList.add('collapsed');
+    } else {
+      galleryTeaser.classList.add('hidden');
     }
-  } catch(e) {}
+  } catch(e) {
+    galleryTeaser.classList.add('hidden');
+  }
 
   // Set default dates if empty
   function setDefaultDates() {
@@ -510,16 +681,36 @@
 
     uploadStatus.textContent = `${filesData.length} image(s) loaded. Range: ${filesData[0].number} - ${filesData[filesData.length-1].number}`;
 
-    settingsPanel.classList.remove('hidden');
-    trimPanel.classList.remove('hidden');
-    galleryPanel.classList.remove('hidden');
-    actionsPanel.classList.remove('hidden');
+    // Preload all images into memory for instant preview and gallery
+    const preloadPromises = filesData.map(item => new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          item.cachedImg = img;
+          item.naturalWidth = img.naturalWidth;
+          item.naturalHeight = img.naturalHeight;
+          resolve();
+        };
+        img.onerror = () => resolve();
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve();
+      reader.readAsDataURL(item.file);
+    }));
 
-    setDefaultDates();
-    updateDates();
-    loadFirstImage();
-    renderGallery();
-    saveSettings();
+    Promise.all(preloadPromises).then(() => {
+      settingsPanel.classList.remove('hidden');
+      trimPanel.classList.remove('hidden');
+      galleryPanel.classList.remove('hidden');
+      actionsPanel.classList.remove('hidden');
+
+      setDefaultDates();
+      updateDates();
+      loadFirstImage();
+      renderGallery();
+      saveSettings();
+    });
   }
 
   function updateDates() {
@@ -591,7 +782,7 @@
     drawPreview();
   }
 
-  autoScaleBtn.addEventListener('click', () => { autoDetectScale(); });
+
 
   function getTrimPixels() {
     const s = parseInt(scaleFactor.value, 10) || 1;
@@ -621,16 +812,28 @@
     previewCtx.imageSmoothingEnabled = false;
     previewCtx.drawImage(firstImage, 0, 0, canvasW, canvasH);
 
-    // Draw crop overlay
+    // Draw crop overlay directly on canvas (pixel-perfect alignment)
     const t = trim.top * previewScale;
     const b = trim.bottom * previewScale;
     const l = trim.left * previewScale;
     const r = trim.right * previewScale;
 
-    cropOverlay.style.top = t + 'px';
-    cropOverlay.style.left = l + 'px';
-    cropOverlay.style.right = r + 'px';
-    cropOverlay.style.bottom = b + 'px';
+    previewCtx.fillStyle = 'rgba(139, 172, 15, 0.25)';
+    // Top strip
+    previewCtx.fillRect(0, 0, canvasW, t);
+    // Bottom strip
+    previewCtx.fillRect(0, canvasH - b, canvasW, b);
+    // Left strip
+    previewCtx.fillRect(0, t, l, canvasH - t - b);
+    // Right strip
+    previewCtx.fillRect(canvasW - r, t, r, canvasH - t - b);
+
+    // Dashed border on the crop edges
+    previewCtx.strokeStyle = 'rgba(155, 188, 15, 0.8)';
+    previewCtx.lineWidth = 2;
+    previewCtx.setLineDash([4, 4]);
+    previewCtx.strokeRect(l, t, canvasW - l - r, canvasH - t - b);
+    previewCtx.setLineDash([]);
 
     const cw = canvasW - l - r;
     const ch = canvasH - t - b;
@@ -639,19 +842,36 @@
 
   [trimTop, trimBottom, trimLeft, trimRight, scaleFactor].forEach(el => {
     el.addEventListener('input', () => { drawPreview(); saveSettings(); });
+    el.addEventListener('change', () => { renderGallery(); });
   });
 
-  function renderGallery() {
-    imageList.innerHTML = '';
-    filesData.forEach((item, idx) => {
-      const div = document.createElement('div');
-      div.className = 'thumb';
+  function createThumb(item, idx, small) {
+    const div = document.createElement('div');
+    div.className = 'thumb';
 
-      const img = document.createElement('img');
-      const url = URL.createObjectURL(item.file);
-      img.src = url;
-      img.onload = () => URL.revokeObjectURL(url);
+    const img = document.createElement('img');
 
+    // Draw cropped thumbnail from cached image
+    if (item.cachedImg) {
+      const trim = getTrimPixels();
+      const w = item.cachedImg.naturalWidth;
+      const h = item.cachedImg.naturalHeight;
+      const cw = Math.max(1, w - trim.left - trim.right);
+      const ch = Math.max(1, h - trim.top - trim.bottom);
+
+      const c = document.createElement('canvas');
+      c.width = cw;
+      c.height = ch;
+      const ctx = c.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(item.cachedImg, -trim.left, -trim.top);
+
+      img.src = c.toDataURL('image/png');
+    }
+
+    div.appendChild(img);
+
+    if (!small) {
       const name = document.createElement('div');
       name.textContent = item.file.name;
 
@@ -665,12 +885,111 @@
       }
       dateDiv.style.opacity = '0.7';
 
-      div.appendChild(img);
       div.appendChild(name);
       div.appendChild(dateDiv);
-      imageList.appendChild(div);
-    });
+    }
+
+    div.addEventListener('click', () => openLightbox(idx));
+    return div;
   }
+
+  function renderGallery() {
+    imageList.innerHTML = '';
+    galleryTeaser.innerHTML = '';
+
+    // Full grid
+    filesData.forEach((item, idx) => {
+      imageList.appendChild(createThumb(item, idx, false));
+    });
+
+    // Teaser row (first 3 images + show-all button below)
+    const thumbsWrap = document.createElement('div');
+    thumbsWrap.className = 'teaser-thumbs';
+
+    const teaserCount = Math.min(3, filesData.length);
+    for (let i = 0; i < teaserCount; i++) {
+      thumbsWrap.appendChild(createThumb(filesData[i], i, true));
+    }
+    galleryTeaser.appendChild(thumbsWrap);
+
+    const btn = document.createElement('button');
+    btn.className = 'show-all-btn';
+    btn.textContent = filesData.length > teaserCount
+      ? `[+] Show all ${filesData.length} images`
+      : `[+] Expand gallery`;
+    btn.addEventListener('click', () => {
+      imageList.classList.remove('hidden');
+      galleryTeaser.classList.add('hidden');
+      galleryToggle.classList.remove('collapsed');
+      localStorage.setItem('gbcam_gallery_collapsed', '0');
+    });
+    galleryTeaser.appendChild(btn);
+  }
+
+  // Lightbox
+  function openLightbox(idx) {
+    lightboxIndex = idx;
+    updateLightbox();
+    lightboxOverlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightboxOverlay.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function showPrev() {
+    if (filesData.length === 0) return;
+    lightboxIndex = (lightboxIndex - 1 + filesData.length) % filesData.length;
+    updateLightbox();
+  }
+
+  function showNext() {
+    if (filesData.length === 0) return;
+    lightboxIndex = (lightboxIndex + 1) % filesData.length;
+    updateLightbox();
+  }
+
+  function updateLightbox() {
+    const item = filesData[lightboxIndex];
+    if (!item) return;
+
+    // Show cropped image in lightbox
+    if (item.cachedImg) {
+      const trim = getTrimPixels();
+      const w = item.cachedImg.naturalWidth;
+      const h = item.cachedImg.naturalHeight;
+      const cw = Math.max(1, w - trim.left - trim.right);
+      const ch = Math.max(1, h - trim.top - trim.bottom);
+
+      const c = document.createElement('canvas');
+      c.width = cw;
+      c.height = ch;
+      const ctx = c.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(item.cachedImg, -trim.left, -trim.top);
+      lightboxImg.src = c.toDataURL('image/png');
+    }
+
+    const pad = n => String(n).padStart(2, '0');
+    const d = item.date;
+    const dateStr = d ? `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}` : '...';
+    lightboxCaption.textContent = `${lightboxIndex + 1} / ${filesData.length} — ${item.file.name} — ${dateStr}`;
+  }
+
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightboxPrev.addEventListener('click', e => { e.stopPropagation(); showPrev(); });
+  lightboxNext.addEventListener('click', e => { e.stopPropagation(); showNext(); });
+  lightboxOverlay.addEventListener('click', e => {
+    if (e.target === lightboxOverlay) closeLightbox();
+  });
+  document.addEventListener('keydown', e => {
+    if (lightboxOverlay.classList.contains('hidden')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') showPrev();
+    if (e.key === 'ArrowRight') showNext();
+  });
 
   // Process images
   processBtn.addEventListener('click', async () => {
