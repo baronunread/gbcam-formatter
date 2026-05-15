@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GB Cam Formatter</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+  :root {
+    --gb-bg: #8bac0f;
+    --gb-dark: #0f380f;
+    --gb-mid: #306230;
+    --gb-light: #9bbc0f;
+    --gb-pale: #c0d68f;
+    --screen-bg: #9bbc0f;
+    --scanline: rgba(15, 56, 15, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Press Start 2P', monospace;
+    background: var(--gb-bg);
+    color: var(--gb-dark);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 16px;
+    margin: 20px 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 15px;
+  }
+
+  .panel {
+    background: var(--gb-light);
+    border: 3px solid var(--gb-dark);
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+  }
+
+  .panel-title {
+    background: var(--gb-dark);
+    color: var(--gb-light);
+    padding: 6px 10px;
+    margin: -15px -15px 12px -15px;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+
+  .drop-zone {
+    border: 3px dashed var(--gb-dark);
+    padding: 30px;
+    text-align: center;
+    background: var(--gb-pale);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    background: var(--gb-light);
+  }
+  .drop-zone input[type="file"] { display: none; }
+
+  .row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .col { flex: 1; min-width: 200px; }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 10px;
+  }
+
+  input[type="datetime-local"],
+  input[type="number"],
+  input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid var(--gb-dark);
+    background: var(--gb-pale);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--gb-dark);
+    outline: none;
+  }
+  input[type="datetime-local"]:focus,
+  input[type="number"]:focus,
+  input[type="text"]:focus {
+    background: var(--gb-light);
+  }
+
+  .field-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .field-row label {
+    min-width: 70px;
+    margin-bottom: 0;
+  }
+  .field-row input[type="number"] {
+    width: 60px;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 10px 16px;
+    background: var(--gb-dark);
+    color: var(--gb-light);
+    border: 2px solid var(--gb-dark);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+  .btn:hover {
+    background: var(--gb-mid);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .preview-wrap {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .preview-box {
+    position: relative;
+    display: inline-block;
+    border: 2px solid var(--gb-dark);
+    background: #000;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .preview-box img, .preview-box canvas {
+    display: block;
+    max-width: 100%;
+    image-rendering: pixelated;
+  }
+
+  .crop-overlay {
+    position: absolute;
+    border: 2px dashed var(--gb-light);
+    background: rgba(139, 172, 15, 0.25);
+    pointer-events: none;
+    top: 0; left: 0; right: 0; bottom: 0;
+  }
+
+  .image-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .thumb {
+    background: var(--gb-dark);
+    padding: 4px;
+    text-align: center;
+    font-size: 8px;
+    color: var(--gb-light);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .thumb img {
+    width: 100%;
+    height: auto;
+    display: block;
+    image-rendering: pixelated;
+    margin-bottom: 4px;
+  }
+
+  .status {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--gb-mid);
+  }
+
+  .progress-wrap {
+    width: 100%;
+    height: 14px;
+    background: var(--gb-pale);
+    border: 2px solid var(--gb-dark);
+    margin-top: 10px;
+    display: none;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--gb-dark);
+    width: 0%;
+    transition: width 0.2s;
+  }
+
+  .hidden { display: none !important; }
+
+  /* Scanline overlay for retro feel */
+  body::after {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      var(--scanline) 2px,
+      var(--scanline) 4px
+    );
+    z-index: 9999;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>GB Cam Formatter</h1>
+
+  <!-- Upload -->
+  <div class="panel">
+    <div class="panel-title">1. Upload Images</div>
+    <div class="drop-zone" id="dropZone">
+      <div>DRAG & DROP IMAGES HERE</div>
+      <div style="margin-top:8px; font-size:9px;">OR CLICK TO SELECT</div>
+      <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/jpg">
+    </div>
+    <div id="uploadStatus" class="status"></div>
+  </div>
+
+  <!-- Settings -->
+  <div class="panel hidden" id="settingsPanel">
+    <div class="panel-title">2. Date Range</div>
+    <div class="row">
+      <div class="col">
+        <label>Start Date</label>
+        <input type="datetime-local" id="startDate">
+      </div>
+      <div class="col">
+        <label>End Date</label>
+        <input type="datetime-local" id="endDate">
+      </div>
+    </div>
+  </div>
+
+  <!-- Border Trim -->
+  <div class="panel hidden" id="trimPanel">
+    <div class="panel-title">3. Border Trim (Game Boy Dots)</div>
+    <div class="row">
+      <div class="col">
+        <div class="field-row">
+          <label>Top</label>
+          <input type="number" id="trimTop" value="16" min="0">
+        </div>
+        <div class="field-row">
+          <label>Bottom</label>
+          <input type="number" id="trimBottom" value="16" min="0">
+        </div>
+        <div class="field-row">
+          <label>Left</label>
+          <input type="number" id="trimLeft" value="8" min="0">
+        </div>
+        <div class="field-row">
+          <label>Right</label>
+          <input type="number" id="trimRight" value="8" min="0">
+        </div>
+        <div class="field-row">
+          <label>Scale</label>
+          <input type="number" id="scaleFactor" value="1" min="1" step="1">
+          <span style="font-size:8px;">dots/px</span>
+        </div>
+        <div class="field-row">
+          <label>Auto</label>
+          <button type="button" class="btn" id="autoScaleBtn" style="margin-top:0;">Detect</button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="preview-box" id="previewBox">
+          <canvas id="previewCanvas"></canvas>
+          <div class="crop-overlay" id="cropOverlay"></div>
+        </div>
+        <div class="status" id="previewStatus">Preview on first image</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gallery -->
+  <div class="panel hidden" id="galleryPanel">
+    <div class="panel-title">4. Gallery Preview</div>
+    <div class="image-list" id="imageList"></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="panel hidden" id="actionsPanel">
+    <div class="panel-title">5. Process</div>
+    <button class="btn" id="processBtn">Generate & Download ZIP</button>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div id="processStatus" class="status"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // DOM refs
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const uploadStatus = document.getElementById('uploadStatus');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const trimPanel = document.getElementById('trimPanel');
+  const galleryPanel = document.getElementById('galleryPanel');
+  const actionsPanel = document.getElementById('actionsPanel');
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  const trimTop = document.getElementById('trimTop');
+  const trimBottom = document.getElementById('trimBottom');
+  const trimLeft = document.getElementById('trimLeft');
+  const trimRight = document.getElementById('trimRight');
+  const scaleFactor = document.getElementById('scaleFactor');
+  const autoScaleBtn = document.getElementById('autoScaleBtn');
+  const previewCanvas = document.getElementById('previewCanvas');
+  const cropOverlay = document.getElementById('cropOverlay');
+  const previewStatus = document.getElementById('previewStatus');
+  const imageList = document.getElementById('imageList');
+  const processBtn = document.getElementById('processBtn');
+  const progressWrap = document.getElementById('progressWrap');
+  const progressBar = document.getElementById('progressBar');
+  const processStatus = document.getElementById('processStatus');
+
+  const previewCtx = previewCanvas.getContext('2d');
+
+  let filesData = []; // { file, number, img, date }
+  let firstImage = null;
+  let firstImageNaturalWidth = 0;
+  let firstImageNaturalHeight = 0;
+
+  // Load persisted settings
+  function loadSettings() {
+    try {
+      const s = JSON.parse(localStorage.getItem('gbcam_settings') || '{}');
+      if (s.startDate) startDateInput.value = s.startDate;
+      if (s.endDate) endDateInput.value = s.endDate;
+      if (s.trimTop !== undefined) trimTop.value = s.trimTop;
+      if (s.trimBottom !== undefined) trimBottom.value = s.trimBottom;
+      if (s.trimLeft !== undefined) trimLeft.value = s.trimLeft;
+      if (s.trimRight !== undefined) trimRight.value = s.trimRight;
+      if (s.scaleFactor !== undefined) scaleFactor.value = s.scaleFactor;
+    } catch(e) {}
+  }
+  function saveSettings() {
+    localStorage.setItem('gbcam_settings', JSON.stringify({
+      startDate: startDateInput.value,
+      endDate: endDateInput.value,
+      trimTop: trimTop.value,
+      trimBottom: trimBottom.value,
+      trimLeft: trimLeft.value,
+      trimRight: trimRight.value,
+      scaleFactor: scaleFactor.value,
+    }));
+  }
+  loadSettings();
+
+  // Set default dates if empty
+  function setDefaultDates() {
+    if (!startDateInput.value) {
+      const now = new Date();
+      now.setMinutes(0, 0, 0);
+      startDateInput.value = toDatetimeLocal(now);
+    }
+    if (!endDateInput.value) {
+      const end = new Date();
+      end.setDate(end.getDate() + 1);
+      end.setMinutes(0, 0, 0);
+      endDateInput.value = toDatetimeLocal(end);
+    }
+  }
+  function toDatetimeLocal(d) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  // Drag & drop
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+  function handleFiles(fileList) {
+    const files = Array.from(fileList).filter(f => /image\/(png|jpeg|jpg)/i.test(f.type));
+    if (!files.length) return;
+
+    // Extract numbers from filenames like 000283.png -> 283
+    const parsed = files.map(file => {
+      const match = file.name.match(/(\d+)/);
+      const num = match ? parseInt(match[1], 10) : 0;
+      return { file, number: num };
+    }).filter(item => item.number > 0);
+
+    if (!parsed.length) {
+      uploadStatus.textContent = 'No images with numeric names found.';
+      return;
+    }
+
+    parsed.sort((a, b) => a.number - b.number);
+    filesData = parsed;
+
+    uploadStatus.textContent = `${filesData.length} image(s) loaded. Range: ${filesData[0].number} - ${filesData[filesData.length-1].number}`;
+
+    settingsPanel.classList.remove('hidden');
+    trimPanel.classList.remove('hidden');
+    galleryPanel.classList.remove('hidden');
+    actionsPanel.classList.remove('hidden');
+
+    setDefaultDates();
+    updateDates();
+    loadFirstImage();
+    renderGallery();
+    saveSettings();
+  }
+
+  function updateDates() {
+    const startVal = startDateInput.value;
+    const endVal = endDateInput.value;
+    if (!startVal || !endVal || !filesData.length) return;
+
+    const startDate = new Date(startVal);
+    const endDate = new Date(endVal);
+    const minNum = filesData[0].number;
+    const maxNum = filesData[filesData.length - 1].number;
+    const range = maxNum - minNum || 1;
+    const timeRange = endDate.getTime() - startDate.getTime();
+
+    filesData.forEach(item => {
+      const ratio = (item.number - minNum) / range;
+      item.date = new Date(startDate.getTime() + ratio * timeRange);
+    });
+
+    renderGallery();
+  }
+
+  [startDateInput, endDateInput].forEach(el => el.addEventListener('change', () => { updateDates(); saveSettings(); }));
+
+  // Load first image for preview
+  function loadFirstImage() {
+    if (!filesData.length) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        firstImage = img;
+        firstImageNaturalWidth = img.naturalWidth;
+        firstImageNaturalHeight = img.naturalHeight;
+        autoDetectScale();
+        drawPreview();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(filesData[0].file);
+  }
+
+  // Auto detect scale based on image dimensions
+  function autoDetectScale() {
+    if (!firstImageNaturalWidth || !firstImageNaturalHeight) return;
+    const w = firstImageNaturalWidth;
+    let detected = 1;
+
+    // Game Boy Printer strip width is 160 dots
+    // Game Boy Camera photo width is 128 dots
+    if (w % 160 === 0 && w / 160 >= 1) {
+      detected = w / 160;
+    } else if (w % 128 === 0 && w / 128 >= 1) {
+      detected = w / 128;
+    } else {
+      // Heuristic: pick nearest reasonable scale
+      const scales = [1, 2, 3, 4, 5, 6, 8, 10];
+      let best = 1;
+      let bestDiff = Infinity;
+      for (const s of scales) {
+        const diff = Math.abs(w / s - 160);
+        if (diff < bestDiff) { bestDiff = diff; best = s; }
+      }
+      detected = best;
+    }
+
+    scaleFactor.value = Math.round(detected);
+    saveSettings();
+    drawPreview();
+  }
+
+  autoScaleBtn.addEventListener('click', () => { autoDetectScale(); });
+
+  function getTrimPixels() {
+    const s = parseInt(scaleFactor.value, 10) || 1;
+    return {
+      top: (parseInt(trimTop.value, 10) || 0) * s,
+      bottom: (parseInt(trimBottom.value, 10) || 0) * s,
+      left: (parseInt(trimLeft.value, 10) || 0) * s,
+      right: (parseInt(trimRight.value, 10) || 0) * s,
+    };
+  }
+
+  function drawPreview() {
+    if (!firstImage) return;
+    const trim = getTrimPixels();
+    const w = firstImageNaturalWidth;
+    const h = firstImageNaturalHeight;
+
+    // Draw original in canvas (scaled down to fit)
+    const maxPreviewWidth = 300;
+    const previewScale = Math.min(1, maxPreviewWidth / w);
+    const canvasW = Math.floor(w * previewScale);
+    const canvasH = Math.floor(h * previewScale);
+
+    previewCanvas.width = canvasW;
+    previewCanvas.height = canvasH;
+    previewCtx.clearRect(0, 0, canvasW, canvasH);
+    previewCtx.imageSmoothingEnabled = false;
+    previewCtx.drawImage(firstImage, 0, 0, canvasW, canvasH);
+
+    // Draw crop overlay
+    const t = trim.top * previewScale;
+    const b = trim.bottom * previewScale;
+    const l = trim.left * previewScale;
+    const r = trim.right * previewScale;
+
+    cropOverlay.style.top = t + 'px';
+    cropOverlay.style.left = l + 'px';
+    cropOverlay.style.right = r + 'px';
+    cropOverlay.style.bottom = b + 'px';
+
+    const cw = canvasW - l - r;
+    const ch = canvasH - t - b;
+    previewStatus.textContent = `Preview: ${w}x${h} → crop ${cw/previewScale|0}x${ch/previewScale|0} (scale ${scaleFactor.value}x)`;
+  }
+
+  [trimTop, trimBottom, trimLeft, trimRight, scaleFactor].forEach(el => {
+    el.addEventListener('input', () => { drawPreview(); saveSettings(); });
+  });
+
+  function renderGallery() {
+    imageList.innerHTML = '';
+    filesData.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'thumb';
+
+      const img = document.createElement('img');
+      const url = URL.createObjectURL(item.file);
+      img.src = url;
+      img.onload = () => URL.revokeObjectURL(url);
+
+      const name = document.createElement('div');
+      name.textContent = item.file.name;
+
+      const dateDiv = document.createElement('div');
+      if (item.date) {
+        const pad = n => String(n).padStart(2, '0');
+        const d = item.date;
+        dateDiv.textContent = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      } else {
+        dateDiv.textContent = '...';
+      }
+      dateDiv.style.opacity = '0.7';
+
+      div.appendChild(img);
+      div.appendChild(name);
+      div.appendChild(dateDiv);
+      imageList.appendChild(div);
+    });
+  }
+
+  // Process images
+  processBtn.addEventListener('click', async () => {
+    if (!filesData.length) return;
+    processBtn.disabled = true;
+    progressWrap.style.display = 'block';
+    processStatus.textContent = 'Processing...';
+
+    const zip = new JSZip();
+    const total = filesData.length;
+    const trim = getTrimPixels();
+
+    for (let i = 0; i < total; i++) {
+      const item = filesData[i];
+      const file = item.file;
+      const date = item.date;
+
+      progressBar.style.width = `${((i) / total) * 100}%`;
+      processStatus.textContent = `Processing ${i+1}/${total}: ${file.name}`;
+
+      try {
+        const result = await processImage(file, date, trim);
+        const outName = generateOutputName(date);
+        zip.file(outName, result, { base64: false });
+      } catch (err) {
+        console.error('Error processing', file.name, err);
+      }
+
+      // Small delay to let UI update
+      await new Promise(r => setTimeout(r, 10));
+    }
+
+    progressBar.style.width = '100%';
+    processStatus.textContent = 'Creating ZIP...';
+
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gb_cam_photos.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    progressWrap.style.display = 'none';
+    progressBar.style.width = '0%';
+    processStatus.textContent = `Done! ${total} image(s) processed.`;
+    processBtn.disabled = false;
+  });
+
+  function generateOutputName(date) {
+    const pad = n => String(n).padStart(2, '0');
+    return `GB_Camera_${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}.jpg`;
+  }
+
+  function processImage(file, date, trim) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const w = img.naturalWidth;
+            const h = img.naturalHeight;
+            const cw = Math.max(1, w - trim.left - trim.right);
+            const ch = Math.max(1, h - trim.top - trim.bottom);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = cw;
+            canvas.height = ch;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(img, -trim.left, -trim.top);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
+
+            // Inject EXIF DateTimeOriginal
+            let exifObj = {};
+            try {
+              exifObj = piexif.load(dataUrl);
+            } catch (e) {
+              exifObj = { '0th': {}, 'Exif': {}, 'GPS': {}, '1st': {}, 'thumbnail': null };
+            }
+
+            const pad = n => String(n).padStart(2, '0');
+            const d = date;
+            const dateStr = `${d.getFullYear()}:${pad(d.getMonth()+1)}:${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+            exifObj['Exif'][piexif.ExifIFD.DateTimeOriginal] = dateStr;
+            exifObj['Exif'][piexif.ExifIFD.DateTimeDigitized] = dateStr;
+            exifObj['0th'][piexif.ImageIFD.DateTime] = dateStr;
+
+            const exifBytes = piexif.dump(exifObj);
+            const newDataUrl = piexif.insert(exifBytes, dataUrl);
+
+            // Convert to blob
+            const base64 = newDataUrl.split(',')[1];
+            const byteChars = atob(base64);
+            const byteNums = new Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) {
+              byteNums[i] = byteChars.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNums);
+            resolve(byteArray);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
