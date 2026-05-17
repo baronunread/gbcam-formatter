@@ -18,6 +18,10 @@ body {
   color: var(--gb-dark);
   font-size: 12px;
   line-height: 1.6;
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" off;
 }
 
 h1 {
