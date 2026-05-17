@@ -8,7 +8,9 @@
   --scanline: rgba(15, 56, 15, 0.08);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -69,17 +71,26 @@ h1 {
   align-items: center;
   justify-content: center;
 }
+
 .drop-zone-text {
   width: 100%;
 }
-.drop-zone:hover, .drop-zone.dragover {
+
+.drop-zone:hover,
+.drop-zone.dragover {
   background: var(--gb-light);
 }
-.drop-zone input[type="file"] { display: none; }
+
+.drop-zone input[type="file"] {
+  display: none;
+}
+
 .drop-zone .loader-wrap {
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -96,7 +107,11 @@ h1 {
   flex-wrap: wrap;
   margin-bottom: 10px;
 }
-.col { flex: 1; min-width: 200px; }
+
+.col {
+  flex: 1;
+  min-width: 200px;
+}
 
 label {
   display: block;
@@ -116,6 +131,7 @@ input[type="text"] {
   color: var(--gb-dark);
   outline: none;
 }
+
 input[type="datetime-local"]:focus,
 input[type="number"]:focus,
 input[type="text"]:focus {
@@ -128,10 +144,12 @@ input[type="text"]:focus {
   align-items: center;
   margin-bottom: 8px;
 }
+
 .field-row label {
   min-width: 70px;
   margin-bottom: 0;
 }
+
 .field-row input[type="number"] {
   width: 60px;
 }
@@ -149,9 +167,11 @@ input[type="text"]:focus {
   transition: all 0.2s;
   margin-top: 10px;
 }
+
 .btn:hover {
   background: var(--gb-mid);
 }
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -175,12 +195,15 @@ input[type="text"]:focus {
   user-select: none;
   -webkit-user-select: none;
 }
+
 .delete-btn:hover {
   background: #a50000;
 }
+
 .delete-btn.active {
   background: #5c0000;
 }
+
 .delete-progress {
   position: absolute;
   top: 0;
@@ -227,7 +250,9 @@ input[type="text"]:focus {
   overflow: hidden;
   align-self: flex-end;
 }
-.preview-box img, .preview-box canvas {
+
+.preview-box img,
+.preview-box canvas {
   display: block;
   max-width: 100%;
   image-rendering: pixelated;
@@ -239,6 +264,7 @@ input[type="text"]:focus {
   gap: 10px;
   margin-top: 10px;
 }
+
 .thumb {
   background: var(--gb-dark);
   padding: 4px;
@@ -249,6 +275,7 @@ input[type="text"]:focus {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
 .thumb img {
   width: 100%;
   aspect-ratio: 128 / 112;
@@ -263,6 +290,7 @@ input[type="text"]:focus {
   font-size: 10px;
   color: var(--gb-mid);
 }
+
 #previewStatus {
   text-align: right;
   align-self: flex-end;
@@ -277,11 +305,13 @@ input[type="text"]:focus {
   margin-top: 16px;
   padding: 15px;
 }
+
 .loader-gif {
   width: 64px;
   height: 64px;
   image-rendering: pixelated;
 }
+
 .loader-text {
   font-family: 'Press Start 2P', monospace;
   font-size: 9px;
@@ -299,6 +329,7 @@ input[type="text"]:focus {
   margin-top: 10px;
   display: none;
 }
+
 .progress-bar {
   height: 100%;
   background: var(--gb-dark);
@@ -306,7 +337,9 @@ input[type="text"]:focus {
   transition: width 0.2s;
 }
 
-.hidden { display: none !important; }
+.hidden {
+  display: none !important;
+}
 
 .panel-title-toggle {
   cursor: pointer;
@@ -315,11 +348,13 @@ input[type="text"]:focus {
   align-items: center;
   justify-content: space-between;
 }
+
 .panel-title-toggle::after {
   content: "\25BC";
   font-size: 10px;
   transition: transform 0.2s;
 }
+
 .panel-title-toggle.collapsed::after {
   content: "\25B6";
 }
@@ -331,11 +366,13 @@ input[type="text"]:focus {
   gap: 10px;
   margin-top: 10px;
 }
+
 .teaser-thumbs {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
+
 .teaser-thumbs .thumb {
   flex: 0 0 100px;
   cursor: pointer;
@@ -343,15 +380,18 @@ input[type="text"]:focus {
   padding: 3px;
   transition: transform 0.15s;
 }
+
 .teaser-thumbs .thumb:hover {
   transform: scale(1.05);
 }
+
 .teaser-thumbs .thumb img {
   width: 100%;
   height: auto;
   display: block;
   image-rendering: pixelated;
 }
+
 .show-all-btn {
   display: inline-flex;
   align-items: center;
@@ -366,14 +406,17 @@ input[type="text"]:focus {
   text-transform: uppercase;
   white-space: nowrap;
 }
+
 .show-all-btn:hover {
   background: var(--gb-mid);
 }
 
 .lightbox-overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(15, 56, 15, 0.92);
   display: flex;
   align-items: center;
@@ -381,6 +424,7 @@ input[type="text"]:focus {
   z-index: 10000;
   padding: 20px;
 }
+
 .lightbox-content {
   position: relative;
   max-width: 90vw;
@@ -389,6 +433,7 @@ input[type="text"]:focus {
   flex-direction: column;
   align-items: center;
 }
+
 .lightbox-content img {
   max-width: 100%;
   max-height: 80vh;
@@ -396,12 +441,14 @@ input[type="text"]:focus {
   border: 3px solid var(--gb-light);
   background: #000;
 }
+
 .lightbox-caption {
   margin-top: 10px;
   color: var(--gb-light);
   font-size: 9px;
   text-align: center;
 }
+
 .lightbox-close,
 .lightbox-prev,
 .lightbox-next {
@@ -416,20 +463,24 @@ input[type="text"]:focus {
   line-height: 1;
   z-index: 10001;
 }
+
 .lightbox-close:hover,
 .lightbox-prev:hover,
 .lightbox-next:hover {
   background: var(--gb-mid);
 }
+
 .lightbox-close {
   top: -40px;
   right: 0;
 }
+
 .lightbox-prev {
   left: -50px;
   top: 50%;
   transform: translateY(-50%);
 }
+
 .lightbox-next {
   right: -50px;
   top: 50%;
@@ -442,12 +493,14 @@ footer {
   font-size: 9px;
   color: var(--gb-mid);
 }
+
 footer .footer-links {
   display: flex;
   justify-content: center;
   gap: 16px;
   margin-bottom: 10px;
 }
+
 footer a {
   color: var(--gb-dark);
   text-decoration: none;
@@ -457,9 +510,11 @@ footer a {
   transition: color 0.2s;
   line-height: 1;
 }
+
 footer a:hover {
   color: var(--gb-mid);
 }
+
 footer svg {
   width: 16px;
   height: 16px;
@@ -485,30 +540,44 @@ footer svg {
 body::after {
   content: "";
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 2px,
-    var(--scanline) 2px,
-    var(--scanline) 4px
-  );
+  background: repeating-linear-gradient(to bottom,
+      transparent 0px,
+      transparent 2px,
+      var(--scanline) 2px,
+      var(--scanline) 4px);
   z-index: 9999;
   opacity: 0.6;
 }
 
 @media (max-width: 600px) {
-  .lightbox-prev { left: 0; top: auto; bottom: -50px; transform: none; }
-  .lightbox-next { right: 0; top: auto; bottom: -50px; transform: none; }
+  .lightbox-prev {
+    left: 0;
+    top: auto;
+    bottom: -50px;
+    transform: none;
+  }
+
+  .lightbox-next {
+    right: 0;
+    top: auto;
+    bottom: -50px;
+    transform: none;
+  }
 
   #trimPanel .row {
     flex-direction: column;
   }
+
   .trim-controls {
     min-width: auto;
     width: 100%;
   }
+
   .preview-col {
     align-items: flex-start;
     max-width: 100%;
