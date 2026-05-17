@@ -531,6 +531,20 @@ footer svg {
   flex-shrink: 0;
 }
 
+.commit-id {
+  margin-top: 6px;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+.commit-id a {
+  color: var(--gb-mid);
+}
+
+.commit-id a:hover {
+  color: var(--gb-dark);
+}
+
 .drop-zone-subtext {
   margin-top: 8px;
   font-size: 8px;

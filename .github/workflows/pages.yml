@@ -14,6 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Inject commit SHA into footer
+        run: |
+          COMMIT_SHA=${GITHUB_SHA::7}
+          sed -i "s/COMMIT_SHA_PLACEHOLDER/$COMMIT_SHA/g" index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
