@@ -52,7 +52,7 @@ h1 {
   color: var(--gb-light);
   padding: 6px 10px;
   margin: -15px -15px 12px -15px;
-  font-size: 10px;
+  font-size: 8px;
   text-transform: uppercase;
 }
 
@@ -115,7 +115,7 @@ h1 {
 label {
   display: block;
   margin-bottom: 5px;
-  font-size: 10px;
+  font-size: 8px;
 }
 
 input[type="datetime-local"],
@@ -126,7 +126,7 @@ input[type="text"] {
   border: 2px solid var(--gb-dark);
   background: var(--gb-pale);
   font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
+  font-size: 8px;
   color: var(--gb-dark);
   outline: none;
 }
@@ -160,7 +160,7 @@ input[type="text"]:focus {
   color: var(--gb-light);
   border: 2px solid var(--gb-dark);
   font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
+  font-size: 8px;
   cursor: pointer;
   text-transform: uppercase;
   transition: all 0.2s;
@@ -184,7 +184,7 @@ input[type="text"]:focus {
   color: #fff;
   border: 3px solid #5c0000;
   font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
+  font-size: 8px;
   cursor: pointer;
   text-transform: uppercase;
   text-align: center;
@@ -286,7 +286,7 @@ input[type="text"]:focus {
 
 .status {
   margin-top: 8px;
-  font-size: 10px;
+  font-size: 8px;
   color: var(--gb-mid);
 }
 
@@ -313,7 +313,7 @@ input[type="text"]:focus {
 
 .loader-text {
   font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
+  font-size: 8px;
   color: var(--gb-dark);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -350,7 +350,7 @@ input[type="text"]:focus {
 
 .panel-title-toggle::after {
   content: "\25BC";
-  font-size: 10px;
+  font-size: 8px;
   transition: transform 0.2s;
 }
 
@@ -400,7 +400,7 @@ input[type="text"]:focus {
   color: var(--gb-light);
   border: 2px solid var(--gb-dark);
   font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
+  font-size: 8px;
   cursor: pointer;
   text-transform: uppercase;
   white-space: nowrap;
@@ -444,7 +444,7 @@ input[type="text"]:focus {
 .lightbox-caption {
   margin-top: 10px;
   color: var(--gb-light);
-  font-size: 9px;
+  font-size: 8px;
   text-align: center;
 }
 
@@ -456,7 +456,7 @@ input[type="text"]:focus {
   color: var(--gb-light);
   border: 2px solid var(--gb-light);
   font-family: 'Press Start 2P', monospace;
-  font-size: 12px;
+  font-size: 8px;
   cursor: pointer;
   padding: 6px 10px;
   line-height: 1;
@@ -489,7 +489,7 @@ input[type="text"]:focus {
 footer {
   text-align: center;
   padding: 20px 15px 30px;
-  font-size: 9px;
+  font-size: 8px;
   color: var(--gb-mid);
 }
 
@@ -524,7 +524,7 @@ footer svg {
 
 .drop-zone-subtext {
   margin-top: 8px;
-  font-size: 9px;
+  font-size: 8px;
 }
 
 .scale-hint {
