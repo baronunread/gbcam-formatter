@@ -1,138 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GB Cam Formatter</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-<link rel="icon" type="image/png" href="assets/favicon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GB Cam Formatter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <!-- Privacy-friendly analytics by Plausible -->
+  <script async src="https://stats.italianspeedruncommunity.com/js/pa-2Qdvqpciei5_hLD1K2OwO.js"></script>
+  <script>
+    window.plausible = window.plausible || function () { (plausible.q = plausible.q || []).push(arguments) }, plausible.init = plausible.init || function (i) { plausible.o = i || {} };
+    plausible.init()
+  </script>
 </head>
+
 <body>
 
-<div class="container">
-  <h1>GB Cam Formatter</h1>
+  <div class="container">
+    <h1>GB Cam Formatter</h1>
 
-  <!-- Upload -->
-  <div class="panel">
-    <div class="panel-title">1. Upload Images</div>
-    <div class="drop-zone" id="dropZone">
-      <div class="drop-zone-text" id="dropZoneText">
-        <div>DRAG & DROP IMAGES HERE</div>
-        <div class="drop-zone-subtext">OR CLICK TO SELECT</div>
+    <!-- Upload -->
+    <div class="panel">
+      <div class="panel-title">1. Upload Images</div>
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-zone-text" id="dropZoneText">
+          <div>DRAG & DROP IMAGES HERE</div>
+          <div class="drop-zone-subtext">OR CLICK TO SELECT</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/jpg">
+        <div class="loader-wrap hidden" id="loaderWrap">
+          <img class="loader-gif" id="loaderGif" src="assets/loader.gif" alt="Loading">
+          <div class="loader-text" id="loaderText">Loading...</div>
+        </div>
       </div>
-      <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/jpg">
-      <div class="loader-wrap hidden" id="loaderWrap">
-        <img class="loader-gif" id="loaderGif" src="assets/loader.gif" alt="Loading">
-        <div class="loader-text" id="loaderText">Loading...</div>
+      <div id="uploadStatus" class="status"></div>
+      <button class="delete-btn hidden" id="deleteBtn">
+        <div class="delete-progress" id="deleteProgress"></div>
+        HOLD TO DELETE
+      </button>
+    </div>
+
+    <!-- Settings -->
+    <div class="panel hidden" id="settingsPanel">
+      <div class="panel-title">2. Date Range</div>
+      <div class="row">
+        <div class="col">
+          <label>Start Date</label>
+          <input type="datetime-local" id="startDate">
+        </div>
+        <div class="col">
+          <label>End Date</label>
+          <input type="datetime-local" id="endDate">
+        </div>
       </div>
     </div>
-    <div id="uploadStatus" class="status"></div>
-    <button class="delete-btn hidden" id="deleteBtn">
-      <div class="delete-progress" id="deleteProgress"></div>
-      HOLD TO DELETE
-    </button>
-  </div>
 
-  <!-- Settings -->
-  <div class="panel hidden" id="settingsPanel">
-    <div class="panel-title">2. Date Range</div>
-    <div class="row">
-      <div class="col">
-        <label>Start Date</label>
-        <input type="datetime-local" id="startDate">
+    <!-- Border Trim -->
+    <div class="panel hidden" id="trimPanel">
+      <div class="panel-title">3. Border Trim (Game Boy Dots)</div>
+      <div class="row">
+        <div class="col trim-controls">
+          <div class="field-row">
+            <label>Top</label>
+            <input type="number" id="trimTop" value="16" min="0" onfocus="this.select()">
+          </div>
+          <div class="field-row">
+            <label>Bottom</label>
+            <input type="number" id="trimBottom" value="16" min="0" onfocus="this.select()">
+          </div>
+          <div class="field-row">
+            <label>Left</label>
+            <input type="number" id="trimLeft" value="16" min="0" onfocus="this.select()">
+          </div>
+          <div class="field-row">
+            <label>Right</label>
+            <input type="number" id="trimRight" value="16" min="0" onfocus="this.select()">
+          </div>
+          <div class="field-row">
+            <label>Scale</label>
+            <input type="number" id="scaleFactor" value="1" min="1" step="1" onfocus="this.select()">
+            <span class="scale-hint">dots/px</span>
+          </div>
+        </div>
+        <div class="preview-col">
+          <div class="preview-box" id="previewBox">
+            <canvas id="previewCanvas"></canvas>
+          </div>
+          <div class="status" id="previewStatus">Preview on first image</div>
+        </div>
       </div>
-      <div class="col">
-        <label>End Date</label>
-        <input type="datetime-local" id="endDate">
+    </div>
+
+    <!-- Gallery -->
+    <div class="panel hidden" id="galleryPanel">
+      <div class="panel-title panel-title-toggle collapsed" id="galleryToggle">4. Gallery Preview</div>
+      <div class="teaser-row hidden" id="galleryTeaser"></div>
+      <div class="image-list hidden" id="imageList"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="panel hidden" id="actionsPanel">
+      <div class="panel-title">5. Process</div>
+      <div class="center-actions">
+        <button class="btn" id="processBtn">Generate & Download ZIP</button>
       </div>
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div id="processStatus" class="status"></div>
     </div>
   </div>
 
-  <!-- Border Trim -->
-  <div class="panel hidden" id="trimPanel">
-    <div class="panel-title">3. Border Trim (Game Boy Dots)</div>
-    <div class="row">
-      <div class="col trim-controls">
-        <div class="field-row">
-          <label>Top</label>
-          <input type="number" id="trimTop" value="16" min="0" onfocus="this.select()">
-        </div>
-        <div class="field-row">
-          <label>Bottom</label>
-          <input type="number" id="trimBottom" value="16" min="0" onfocus="this.select()">
-        </div>
-        <div class="field-row">
-          <label>Left</label>
-          <input type="number" id="trimLeft" value="16" min="0" onfocus="this.select()">
-        </div>
-        <div class="field-row">
-          <label>Right</label>
-          <input type="number" id="trimRight" value="16" min="0" onfocus="this.select()">
-        </div>
-        <div class="field-row">
-          <label>Scale</label>
-          <input type="number" id="scaleFactor" value="1" min="1" step="1" onfocus="this.select()">
-          <span class="scale-hint">dots/px</span>
-        </div>
-      </div>
-      <div class="preview-col">
-        <div class="preview-box" id="previewBox">
-          <canvas id="previewCanvas"></canvas>
-        </div>
-        <div class="status" id="previewStatus">Preview on first image</div>
-      </div>
+  <footer>
+    <div class="footer-links">
+      <a href="https://github.com/baronunread/gbcam-formatter" id="githubLink" title="GitHub" target="_blank"
+        rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+        </svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://x.com/baronunread" id="xLink" title="X / Twitter" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+        <span>@baronunread</span>
+      </a>
+    </div>
+    <div>Made with <span class="heart">&#9829;</span> for all the Game Boy Camera enthusiasts</div>
+  </footer>
+
+  <!-- Lightbox -->
+  <div class="lightbox-overlay hidden" id="lightboxOverlay">
+    <div class="lightbox-content">
+      <button class="lightbox-close" id="lightboxClose" title="Close">X</button>
+      <button class="lightbox-prev" id="lightboxPrev" title="Previous">&lt;</button>
+      <img id="lightboxImg" src="" alt="Preview">
+      <button class="lightbox-next" id="lightboxNext" title="Next">&gt;</button>
+      <div class="lightbox-caption" id="lightboxCaption"></div>
     </div>
   </div>
 
-  <!-- Gallery -->
-  <div class="panel hidden" id="galleryPanel">
-    <div class="panel-title panel-title-toggle collapsed" id="galleryToggle">4. Gallery Preview</div>
-    <div class="teaser-row hidden" id="galleryTeaser"></div>
-    <div class="image-list hidden" id="imageList"></div>
-  </div>
-
-  <!-- Actions -->
-  <div class="panel hidden" id="actionsPanel">
-    <div class="panel-title">5. Process</div>
-    <div class="center-actions">
-      <button class="btn" id="processBtn">Generate & Download ZIP</button>
-    </div>
-    <div class="progress-wrap" id="progressWrap">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <div id="processStatus" class="status"></div>
-  </div>
-</div>
-
-<footer>
-  <div class="footer-links">
-    <a href="https://github.com/baronunread/gbcam-formatter" id="githubLink" title="GitHub" target="_blank" rel="noopener noreferrer">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-      <span>GitHub</span>
-    </a>
-    <a href="https://x.com/baronunread" id="xLink" title="X / Twitter" target="_blank" rel="noopener noreferrer">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      <span>@baronunread</span>
-    </a>
-  </div>
-  <div>Made with <span class="heart">&#9829;</span> for all the Game Boy Camera enthusiasts</div>
-</footer>
-
-<!-- Lightbox -->
-<div class="lightbox-overlay hidden" id="lightboxOverlay">
-  <div class="lightbox-content">
-    <button class="lightbox-close" id="lightboxClose" title="Close">X</button>
-    <button class="lightbox-prev" id="lightboxPrev" title="Previous">&lt;</button>
-    <img id="lightboxImg" src="" alt="Preview">
-    <button class="lightbox-next" id="lightboxNext" title="Next">&gt;</button>
-    <div class="lightbox-caption" id="lightboxCaption"></div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="js/script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="js/script.js"></script>
 
 </body>
+
 </html>
