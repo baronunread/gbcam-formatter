@@ -562,7 +562,7 @@
 
   function generateOutputName(date) {
     const pad = (n) => String(n).padStart(2, "0");
-    return `GB_Camera_${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}.jpg`;
+    return `GB_Camera_${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}.png`;
   }
 
   // Hold-to-delete logic
@@ -651,27 +651,9 @@
             ctx.imageSmoothingEnabled = false;
             ctx.drawImage(img, -trim.left, -trim.top);
 
-            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+            const dataUrl = canvas.toDataURL("image/png");
 
-            let exifObj = {};
-            try {
-              exifObj = piexif.load(dataUrl);
-            } catch (e) {
-              exifObj = { "0th": {}, Exif: {}, GPS: {}, "1st": {}, thumbnail: null };
-            }
-
-            const pad = (n) => String(n).padStart(2, "0");
-            const d = date;
-            const dateStr = `${d.getFullYear()}:${pad(d.getMonth() + 1)}:${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-
-            exifObj["Exif"][piexif.ExifIFD.DateTimeOriginal] = dateStr;
-            exifObj["Exif"][piexif.ExifIFD.DateTimeDigitized] = dateStr;
-            exifObj["0th"][piexif.ImageIFD.DateTime] = dateStr;
-
-            const exifBytes = piexif.dump(exifObj);
-            const newDataUrl = piexif.insert(exifBytes, dataUrl);
-
-            const base64 = newDataUrl.split(",")[1];
+            const base64 = dataUrl.split(",")[1];
             const byteChars = atob(base64);
             const byteNums = new Array(byteChars.length);
             for (let i = 0; i < byteChars.length; i++) {
